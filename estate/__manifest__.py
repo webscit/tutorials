@@ -1,5 +1,8 @@
 {
     "name": "estate",
     'application': True,
-    "depends": ["base"]
+    "depends": ["base"],
+    "data": [
+        "security/ir.model.access.csv"
+    ]
 }
