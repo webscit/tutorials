@@ -1,4 +1,10 @@
+from datetime import timedelta
+
 from odoo import fields, models
+
+
+def _default_date_availability(*args):
+    return fields.Date.today() + timedelta(days=365.25 / 4)
 
 
 class EstateProperty(models.Model):
@@ -6,12 +12,28 @@ class EstateProperty(models.Model):
     _description = "Estate property model"
 
     name = fields.Char("Name", required=True)
+    active = fields.Boolean(default=True)
+    state = fields.Selection(
+        selection=[
+            ("new", "New"),
+            ("offer_received", "Offer Received"),
+            ("offer_accepted", "Offer Accepted"),
+            ("sold", "Sold"),
+            ("cancelled", "Cancelled"),
+        ],
+        required=True,
+        copy=False,
+        default="new"
+    )
+
     description = fields.Text("Description")
     postcode = fields.Char("Post Code")
-    date_availability = fields.Date("Availability")
+    date_availability = fields.Date(
+        "Availability", copy=False, default=_default_date_availability
+    )
     expected_price = fields.Float("Expected Price", required=True)
-    selling_price = fields.Float("Selling Price")
-    bedrooms = fields.Integer("Bedrooms")
+    selling_price = fields.Float("Selling Price", readonly=True, copy=False)
+    bedrooms = fields.Integer("Bedrooms", default=2)
     living_area = fields.Integer("Living area")
     facades = fields.Integer("# Facades")
     garage = fields.Boolean("Has a garage")
