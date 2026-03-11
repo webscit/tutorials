@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-from odoo import fields, models
+from odoo import api, fields, models
 
 
 def _default_date_availability(*args):
@@ -41,7 +41,7 @@ class EstateProperty(models.Model):
     facades = fields.Integer("# Facades")
     garage = fields.Boolean("Has a garage")
     garden = fields.Boolean("Has a graden")
-    garden_area = fields.Integer("Garden area")
+    garden_area = fields.Integer("Garden area (sqm)")
     garden_orientation = fields.Selection(
         string="Garden orientation",
         selection=[
@@ -51,6 +51,7 @@ class EstateProperty(models.Model):
             ("west", "West"),
         ],
     )
+    total_area = fields.Float("Total area (sqm)", compute="_compute_total_area")
 
     salesperson_id = fields.Many2one(
         "res.users", string="Salesperson", default=lambda self: self.env.user
@@ -58,3 +59,20 @@ class EstateProperty(models.Model):
     buyer_id = fields.Many2one("res.partner", string="Buyer", copy=False)
 
     offer_ids = fields.One2many("estate.property.offer", "property_id", string="Offers")
+    best_price = fields.Float("Best price", compute="_compute_best_price")
+
+    @api.depends("living_area", "garden_area")
+    def _compute_total_area(self):
+        for record in self:
+            record.total_area = record.living_area + record.garden_area
+
+    @api.depends("offer_ids")
+    def _compute_best_price(self):
+        for record in self:
+            prices = record.offer_ids.mapped("price")
+            record.best_price = max(prices) if prices else 0
+
+    @api.onchange("garden")
+    def _onchange_garden(self):
+        self.garden_area = 10 if self.garden else 0
+        self.garden_orientation = "north" if self.garden else ""
