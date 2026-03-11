@@ -23,10 +23,13 @@ class EstateProperty(models.Model):
         ],
         required=True,
         copy=False,
-        default="new"
+        default="new",
     )
 
     description = fields.Text("Description")
+    property_type_id = fields.Many2one("estate.property.type", string="Property Type")
+    property_tag_ids = fields.Many2many("estate.property.tag", string="Property Tags")
+
     postcode = fields.Char("Post Code")
     date_availability = fields.Date(
         "Available From", copy=False, default=_default_date_availability
@@ -48,3 +51,10 @@ class EstateProperty(models.Model):
             ("west", "West"),
         ],
     )
+
+    salesperson_id = fields.Many2one(
+        "res.users", string="Salesperson", default=lambda self: self.env.user
+    )
+    buyer_id = fields.Many2one("res.partner", string="Buyer", copy=False)
+
+    offer_ids = fields.One2many("estate.property.offer", "property_id", string="Offers")
