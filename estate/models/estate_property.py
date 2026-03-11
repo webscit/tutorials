@@ -11,7 +11,7 @@ class EstateProperty(models.Model):
     _name = "estate.property"
     _description = "Estate property model"
 
-    name = fields.Char("Name", required=True)
+    name = fields.Char("Title", required=True)
     active = fields.Boolean(default=True)
     state = fields.Selection(
         selection=[
@@ -29,12 +29,12 @@ class EstateProperty(models.Model):
     description = fields.Text("Description")
     postcode = fields.Char("Post Code")
     date_availability = fields.Date(
-        "Availability", copy=False, default=_default_date_availability
+        "Available From", copy=False, default=_default_date_availability
     )
     expected_price = fields.Float("Expected Price", required=True)
     selling_price = fields.Float("Selling Price", readonly=True, copy=False)
     bedrooms = fields.Integer("Bedrooms", default=2)
-    living_area = fields.Integer("Living area")
+    living_area = fields.Integer("Living area (sqm)")
     facades = fields.Integer("# Facades")
     garage = fields.Boolean("Has a garage")
     garden = fields.Boolean("Has a graden")
