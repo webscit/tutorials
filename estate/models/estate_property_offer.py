@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-from odoo import api, fields, models
+from odoo import api, exceptions, fields, models
 
 
 class EstatePropertyOffer(models.Model):
@@ -33,3 +33,18 @@ class EstatePropertyOffer(models.Model):
                 if record.create_date
                 else fields.Date.today()
             ).days
+
+    def action_accept(self):
+        if len(self) > 1:
+            raise exceptions.UserError("Only one offer can be accepted.")
+        for record in self:
+            record.status = "accepted"
+            record.property_id.buyer_id = record.partner_id
+            record.property_id.selling_price = record.price
+        return True
+
+    def action_refuse(self):
+        for record in self:
+            record.status = "refused"
+
+        return True

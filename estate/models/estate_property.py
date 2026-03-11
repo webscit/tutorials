@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-from odoo import api, fields, models
+from odoo import api, exceptions, fields, models
 
 
 def _default_date_availability(*args):
@@ -76,3 +76,17 @@ class EstateProperty(models.Model):
     def _onchange_garden(self):
         self.garden_area = 10 if self.garden else 0
         self.garden_orientation = "north" if self.garden else ""
+
+    def action_cancel(self):
+        for record in self:
+            if record.state == "sold":
+                raise exceptions.UserError("Sold property cannot be cancelled.")
+            record.state = "cancelled"
+        return True
+    
+    def action_sell(self):
+        for record in self:
+            if record.state == "cancelled":
+                raise exceptions.UserError("Cancelled property cannot be sold.")
+            record.state = "sold"
+        return True
