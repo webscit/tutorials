@@ -20,8 +20,7 @@ class EstatePropertyOffer(models.Model):
     )
 
     _positive_price = models.Constraint(
-        "CHECK(price > 0)",
-        "An offer price must be strictly positive"
+        "CHECK(price > 0)", "An offer price must be strictly positive"
     )
 
     @api.depends("validity")
@@ -54,3 +53,22 @@ class EstatePropertyOffer(models.Model):
             record.status = "refused"
 
         return True
+
+    @api.model
+    def create(self, vals_list):
+        properties = [
+            self.env["estate.property"].browse(record["property_id"])
+            for record in vals_list
+        ]
+        if any(
+            record["price"]
+            < (min(r.price for r in property.offer_ids) if property.offer_ids else 0)
+            for record, property in zip(vals_list, properties)
+        ):
+            raise exceptions.UserError("New offer cannot be lower than existing offer")
+
+        for record in properties:
+            if record.state == "new":
+                record.state = "offer_received"
+
+        return super().create(vals_list)
