@@ -1,5 +1,7 @@
 {
     "name": "estate",
+    "author": "Frederic Collonval",
+    "license": "LGPL-3",
     'application': True,
     "depends": ["base"],
     "data": [

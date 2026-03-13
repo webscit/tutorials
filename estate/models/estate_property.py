@@ -1,6 +1,7 @@
 from datetime import timedelta
 
 from odoo import api, exceptions, fields, models
+from odoo.tools.float_utils import float_compare, float_is_zero
 
 
 def _default_date_availability(*args):
@@ -35,7 +36,23 @@ class EstateProperty(models.Model):
         "Available From", copy=False, default=_default_date_availability
     )
     expected_price = fields.Float("Expected Price", required=True)
+    _positive_expected_price = models.Constraint(
+        'CHECK(expected_price > 0)',
+        'A property expected price must be strictly positive'
+    )
     selling_price = fields.Float("Selling Price", readonly=True, copy=False)
+
+    _positive_selling_price = models.Constraint(
+        'CHECK(selling_price >= 0)',
+        'A property selling price must be positive'
+    )
+
+    @api.constrains("expected_price", "selling_price")
+    def _check_selling_price(self):
+        for record in self:
+            if not float_is_zero(self.selling_price, 2) and float_compare(self.selling_price / self.expected_price, 0.9, 4) < 0:
+                raise exceptions.ValidationError("The selling price cannot be lower than 90% of the expected price.")
+
     bedrooms = fields.Integer("Bedrooms", default=2)
     living_area = fields.Integer("Living area (sqm)")
     facades = fields.Integer("# Facades")

@@ -19,6 +19,11 @@ class EstatePropertyOffer(models.Model):
         "Deadline", compute="_compute_date_deadline", inverse="_inverse_date_deadline"
     )
 
+    _positive_price = models.Constraint(
+        "CHECK(price > 0)",
+        "An offer price must be strictly positive"
+    )
+
     @api.depends("validity")
     def _compute_date_deadline(self):
         for record in self:
@@ -39,6 +44,7 @@ class EstatePropertyOffer(models.Model):
             raise exceptions.UserError("Only one offer can be accepted.")
         for record in self:
             record.status = "accepted"
+            record.property_id.state = "offer_accepted"
             record.property_id.buyer_id = record.partner_id
             record.property_id.selling_price = record.price
         return True
